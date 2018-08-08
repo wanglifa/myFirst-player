@@ -26,6 +26,7 @@ var Footer = {
         this.$ul = this.$footer.find('ul');
         this.$box = this.$footer.find('.box');
         this.isToEnd = false;
+        this.isAnimate = false;
         this.isToStart = true;
         this.$leftBtn = this.$footer.find('.icon-left');
         this.$rightBtn = this.$footer.find('.icon-right');
@@ -48,8 +49,9 @@ var Footer = {
         var flag = true;
         console.log(_this.$ul.css('left'))
         _this.$rightBtn.on('click',function(){
-            
+            if(_this.isAnimate) return;
             if(!_this.isToEnd){
+                _this.isAnimate = true;
                 _this.$ul.animate({
                     left: '-='+ulLeft
                 },300,function(){
@@ -57,13 +59,33 @@ var Footer = {
                         console.log('over')
                         _this.isToEnd = true;
                     }
+                    _this.isToStart = false;
+                    _this.isAnimate = false;
                 })
-            }
-            
-            
-            
+            }   
         })
-        
+        _this.$leftBtn.on('click',function(){
+            if(_this.isAnimate) return;
+            console.log(_this.isToStart)
+            if(!_this.isToStart){
+                _this.isAnimate = true;
+                _this.$ul.animate({
+                    left: '+='+ulLeft
+                },300,function(){
+                    _this.isToEnd = false;
+                    _this.isAnimate = false;
+                    if(parseFloat(_this.$ul.css('left'))>=0){
+                        _this.isToStart = true;
+                    }
+                    console.log(_this.isToStart,parseFloat(_this.$ul.css('left')))
+                })
+            }   
+        })
+        //还是不懂这里为啥是用事件委托
+        _this.$footer.on('click','li',function(){
+            $(this).addClass('active').siblings().removeClass('active');
+            EventCenter.fire('select-album',$(this).attr('data-channerl-id'))
+        })
     },
     render: function(){
         var _this = this;
@@ -104,3 +126,37 @@ var Footer = {
     }
 }
 Footer.init()
+var Fm = {
+    channelId: null,
+    song: null,
+    audio: null,
+    init: function(){
+        this.audio = new Audio();
+        this.audio.autoPlay = true;
+        this.bind();
+        
+    },
+    bind: function(){
+        var _this = this; 
+        EventCenter.on('select-album',function(e,channelId){
+            _this.channelId = channelId;
+            console.log('select',channelId)
+            _this.loadMusic(function(){
+                _this.setMusic()
+            });
+        })  
+    },
+    loadMusic(callback){
+        var _this = this;
+        $.getJSON('//jirenguapi.applinzi.com/fm/getSong.php',{channel:this.channelId})
+        .done(function(ret){
+            _this.song = ret['song'][0]
+            callback()
+        })
+    },
+    setMusic(){
+        this.audio.src = this.song.url;
+        console.log(this.audio.volume)
+    }
+}
+Fm.init()
