@@ -80,7 +80,10 @@ var Footer = {
        
         _this.$footer.on('click','li',function(){
             $(this).addClass('active').siblings().removeClass('active');
-            EventCenter.fire('select-album',$(this).attr('data-channerl-id'))
+            EventCenter.fire('select-album',{
+                channelId: $(this).attr('data-channerl-id'),
+                channelName: $(this).attr('data-name')
+            })
         })
     },
     render: function(){
@@ -100,7 +103,7 @@ var Footer = {
         console.log(channerls)
         channerls.forEach(function(value){
             //通过拿到JSON里的数据，来拼html
-            html += `<li data-channerl-id=${value.channel_id}>
+            html += `<li data-channerl-id=${value.channel_id} data-name=${value.name}>
                         <div class="cover" style="background-image:url(${value.cover_small})"></div>
                         <h3>${value.name}</h3>
                      </li>    
@@ -126,6 +129,8 @@ var Fm = {
     channelId: null,
     song: null,
     audio: null,
+    channelName: null,
+    currentTime: null,
     init: function(){
         this.audio = new Audio();
         this.audio.autoplay = true;
@@ -133,23 +138,58 @@ var Fm = {
     },
     bind: function(){
         var _this = this; 
-        EventCenter.on('select-album',function(e,channelId){
-            _this.channelId = channelId;
-            console.log('select',channelId)
+        EventCenter.on('select-album',function(e,channelObj){
+            _this.channelId = channelObj.channelId;
+            _this.channelName = channelObj.channelName;
             _this.loadMusic(function(){
                 _this.setMusic()
             });
+        })
+        $('.btn-play').on('click',function(){
+            if($(this).hasClass('icon-play')){
+                $(this).removeClass('icon-play').addClass('icon-pause');
+                _this.audio.play()
+            }else{
+                $(this).removeClass('icon-pause').addClass('icon-play')
+                _this.audio.pause()
+            }
+        })
+        $('.btn-next').on('click',function(){
+            _this.loadMusic()
         })  
+        _this.audio.addEventListener('playing',function(){
+            console.log('playing')
+            clearInterval(_this.currentTime)
+            _this.getcurrentTime = setInterval(function(){
+                _this.updateTime()
+            },1000)
+        })
+        _this.audio.addEventListener('pause',function(){
+            clearInterval(_this.getcurrentTime)
+            console.log('pause')
+        })
     },
-    loadMusic(callback){
+    loadMusic: function(){
         var _this = this;
         $.getJSON('//jirenguapi.applinzi.com/fm/getSong.php',{channel:this.channelId})
         .done(function(ret){
-            _this.song = ret['song'][0]
-            callback()
+            _this.song = ret['song'][0];
+            _this.setMusic()
+            //因为歌词获取必须得在歌曲加载之后
+            _this.loadLyric()
         })
     },
-    setMusic(){
+    //获取歌词，
+    loadLyric: function(){
+        var _this = this;
+        $.getJSON('//jirenguapi.applinzi.com/fm/getLyric.php',{sid:_this.song.sid})
+        .done(function(ret){
+            window.lyric= ret.lyric;
+            var arr =lyric.split('\n');
+            console.log(arr)
+        })
+    },
+    setMusic: function(){
         var _this = this;
         _this.audio.src = _this.song.url;
         $('.bg,figure').css({
@@ -157,7 +197,20 @@ var Fm = {
         })
         $('.detail h1').text(_this.song.title)
         $('.detail .author').text(_this.song.artist)
+        $('.detail .tag').text(_this.channelName)
         console.log(_this.song)
+        $('.btn-play').removeClass('icon-play').addClass('icon-pause')
+    },
+    updateTime: function(){
+        var _this = this;
+        var minute = Math.floor(this.audio.currentTime/60);
+        var second = Math.floor(this.audio.currentTime%60);
+        second<10?second='0'+second:second;
+        $('.detail .current-time').text('0'+minute+':'+second);
+        $('.bar-progress').css({
+            width: (_this.audio.currentTime/_this.audio.duration)*100+'%'
+        })
     }
+    
 }
 Fm.init()
