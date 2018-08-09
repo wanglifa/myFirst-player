@@ -36,10 +36,6 @@ var Footer = {
     },
     bind: function(){
         var _this = this;
-        // $(window).on('resize',function(){
-        //     //为什么这个setStyle只有放在resize事件里才能获取到正确的li的数量
-        //     _this.setStyle()
-        // })
         var boxWidth = _this.$box.css('width');
         var liWidth = _this.$footer.find('li').outerWidth(true);
         var currentRow = Math.floor(parseFloat(boxWidth)/parseFloat(liWidth));
@@ -81,7 +77,7 @@ var Footer = {
                 })
             }   
         })
-        //还是不懂这里为啥是用事件委托
+       
         _this.$footer.on('click','li',function(){
             $(this).addClass('active').siblings().removeClass('active');
             EventCenter.fire('select-album',$(this).attr('data-channerl-id'))
@@ -93,6 +89,7 @@ var Footer = {
             .done(function(ret){
                 console.log(ret.channels)
                 _this.renderFooter(ret.channels)
+                _this.setStyle()
             }).fail(function(){
                 console.log('error')
             })
@@ -110,7 +107,6 @@ var Footer = {
             `
         })
         _this.$ul.html(html)
-        _this.setStyle()
 
     },
     setStyle: function(){
@@ -133,8 +129,7 @@ var Fm = {
     init: function(){
         this.audio = new Audio();
         this.audio.autoPlay = true;
-        this.bind();
-        
+        this.bind();   
     },
     bind: function(){
         var _this = this; 
