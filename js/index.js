@@ -128,7 +128,7 @@ var Fm = {
     audio: null,
     init: function(){
         this.audio = new Audio();
-        this.audio.autoPlay = true;
+        this.audio.autoplay = true;
         this.bind();   
     },
     bind: function(){
@@ -150,8 +150,14 @@ var Fm = {
         })
     },
     setMusic(){
-        this.audio.src = this.song.url;
-        console.log(this.audio.volume)
+        var _this = this;
+        _this.audio.src = _this.song.url;
+        $('.bg,figure').css({
+            'background':'url('+_this.song.picture+')'
+        })
+        $('.detail h1').text(_this.song.title)
+        $('.detail .author').text(_this.song.artist)
+        console.log(_this.song)
     }
 }
 Fm.init()
