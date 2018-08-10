@@ -200,7 +200,10 @@ var Fm = {
     setMusic: function(){
         var _this = this;
         _this.audio.src = _this.song.url;
-        $('.bg,figure').css({
+        $('.bg').css({
+            'background-image':'url('+_this.song.picture+')'
+        })
+        $('figure').css({
             'background':'url('+_this.song.picture+')'
         })
         $('.detail h1').text(_this.song.title)
