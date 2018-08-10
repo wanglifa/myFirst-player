@@ -220,10 +220,29 @@ var Fm = {
         })
         var line = _this.lyricObj['0'+minute+':'+second];
         if(line){
-            $('.lyric p').text(line)
+            $('.lyric p').text(line).bottomText('fadeInLeft')
         }
         
     }
     
 }
 Fm.init()
+//歌词动画
+$.fn.bottomText = function(type){
+    //如果传参数动画类型就是你传的，不传动画类型默认就是rollIn
+    type = type || 'rollIn';
+    var html = '';
+    $(this).text().split('').map(function(value){
+        html += `<span style="display: inline-block">${value}</span>`
+    })
+    $(this).html(html);
+    var $span = $(this).find('span')
+    var index = 0;
+    var timer = setInterval(function(){
+        $span.eq(index).addClass('animated '+type);
+        index++;
+        if(index>=$span.length){
+            clearInterval(timer)
+        }
+    },300)
+}
