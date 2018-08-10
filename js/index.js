@@ -88,7 +88,7 @@ var Footer = {
     },
     render: function(){
         var _this = this;
-        $.getJSON('http://api.jirengu.com/fm/getChannels.php')
+        $.getJSON('//jirenguapi.applinzi.com/fm/getChannels.php')
             .done(function(ret){
                 console.log(ret.channels)
                 _this.renderFooter(ret.channels)
@@ -141,9 +141,7 @@ var Fm = {
         EventCenter.on('select-album',function(e,channelObj){
             _this.channelId = channelObj.channelId;
             _this.channelName = channelObj.channelName;
-            _this.loadMusic(function(){
-                _this.setMusic()
-            });
+            _this.loadMusic();
         })
         $('.btn-play').on('click',function(){
             if($(this).hasClass('icon-play')){
@@ -174,6 +172,7 @@ var Fm = {
         $.getJSON('//jirenguapi.applinzi.com/fm/getSong.php',{channel:this.channelId})
         .done(function(ret){
             _this.song = ret['song'][0];
+            console.log(_this.song);
             _this.setMusic()
             //因为歌词获取必须得在歌曲加载之后
             _this.loadLyric()
@@ -184,9 +183,18 @@ var Fm = {
         var _this = this;
         $.getJSON('//jirenguapi.applinzi.com/fm/getLyric.php',{sid:_this.song.sid})
         .done(function(ret){
-            window.lyric= ret.lyric;
-            var arr =lyric.split('\n');
-            console.log(arr)
+            console.log(ret)
+            _this.lyricObj = {};
+            _this.lyric= ret.lyric;
+            _this.lyric.split('\n').forEach(function(line){
+                var time = line.match(/\d{2}:\d{2}/g);
+                var str = line.replace(/\[.+\]/g,'');
+                if(Array.isArray(time)){
+                    time.forEach(function(timer){
+                        _this.lyricObj[timer]=str
+                    })
+                }
+            })
         })
     },
     setMusic: function(){
@@ -210,6 +218,11 @@ var Fm = {
         $('.bar-progress').css({
             width: (_this.audio.currentTime/_this.audio.duration)*100+'%'
         })
+        var line = _this.lyricObj['0'+minute+':'+second];
+        if(line){
+            $('.lyric p').text(line)
+        }
+        
     }
     
 }
