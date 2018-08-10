@@ -45,17 +45,20 @@ var Footer = {
         var flag = true;
         console.log(_this.$ul.css('left'))
         _this.$rightBtn.on('click',function(){
+            //下次点击按钮的时候如果当前动画还没完成直接就会返回，不会执行下面的代码，也就是_this.isAnimate = true
             if(_this.isAnimate) return;
             if(!_this.isToEnd){
                 _this.isAnimate = true;
                 _this.$ul.animate({
                     left: '-='+ulLeft
                 },300,function(){
+                    //animate的回调函数，动画完成后才执行里面的语句
                     if(parseFloat(boxWidth)-parseFloat(_this.$ul.css('left'))>=parseFloat(_this.$ul.css('width'))){
                         console.log('over')
                         _this.isToEnd = true;
                     }
                     _this.isToStart = false;
+                    //只有动画完成了才能是false
                     _this.isAnimate = false;
                 })
             }   
